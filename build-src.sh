@@ -67,7 +67,7 @@ cd ..
 ln -sf /usr/local/lib/liblz4.* /usr/lib/
 
 cd /opt/src
-OPENSSL='openssl-1.1.0f'
+OPENSSL='openssl-1.1.0g'
 wget https://www.openssl.org/source/${OPENSSL}.tar.gz
 tar xvzf ${OPENSSL}.tar.gz
 cd /opt/src/${OPENSSL}
@@ -106,7 +106,7 @@ tar -xf ../protobuf-c.tar.gz --strip-components=1
 #	libev-dev
 #
 cd /opt/src
-OCSERV=ocserv-0.11.8
+OCSERV=ocserv-0.11.9
 wget ftp://ftp.infradead.org/pub/ocserv/${OCSERV}.tar.xz
 tar xvf ${OCSERV}.tar.xz
 cd /opt/src/${OCSERV}
