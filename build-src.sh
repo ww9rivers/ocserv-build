@@ -1,17 +1,16 @@
 #!/bin/bash
 
-apt-get install -y build-essential autogen pkg-config texinfo libhogweed2 libgmp3-dev gettext
+apt-get install -y build-essential autogen pkg-config texinfo libgmp3-dev gettext
 apt-get install -y libxml2-dev libgeos++-dev libpq-dev libbz2-dev libreadline-dev libtool automake
-apt-get install -y unbound-anchor
+apt-get install -y unbound-anchor libunbound-dev libev4 libev-dev
 mkdir /etc/unbound
 unbound-anchor -a "/etc/unbound/root.key"
 
 mkdir -p /opt/src
 
 cd /opt/src
-NETTLE=nettle-3.3
+NETTLE=nettle-3.4
 wget ftp://ftp.gnu.org/gnu/nettle/${NETTLE}.tar.gz
-#wget http://www.lysator.liu.se/~nisse/archive/nettle-2.7.tar.gz
 tar xvzf ${NETTLE}.tar.gz
 cd /opt/src/${NETTLE}
 ./configure --enable-shared --prefix=/opt/local --disable-assembler
@@ -19,7 +18,7 @@ make
 make install
 
 cd /opt/src
-LIBTASN1=libtasn1-4.12
+LIBTASN1=libtasn1-4.13
 wget http://ftp.gnu.org/gnu/libtasn1/${LIBTASN1}.tar.gz
 tar xvzf ${LIBTASN1}.tar.gz
 cd /opt/src/${LIBTASN1}
@@ -37,21 +36,22 @@ make
 make install
 
 cd /opt/src
-P11KIT=p11-kit-0.23.2
-wget https://p11-glue.freedesktop.org/releases/${P11KIT}.tar.gz
+P11KITVER=0.23.2
+P11KIT=p11-kit-$P11KITVER
+wget -O "$P11KIT".tar.gz https://github.com/p11-glue/p11-kit/archive/${P11KITVER}.tar.gz
 tar xvzf ${P11KIT}.tar.gz
 cd /opt/src/${P11KIT}
-PKG_CONFIG_PATH=/opt/local/lib/pkgconfig ./configure --prefix=/opt/local
+PKG_CONFIG_PATH=/opt/local/lib/pkgconfig ./autogen.sh --prefix=/opt/local
 make
 make install
 
 cd /opt/src
-GNUTLS=gnutls-3.6.0
+GNUTLS=gnutls-3.6.2
 wget ftp://ftp.gnutls.org/gcrypt/gnutls/v3.6/${GNUTLS}.tar.xz
 tar xvfJ ${GNUTLS}.tar.xz
 cd /opt/src/${GNUTLS}
 PKG_CONFIG_PATH=/opt/local/lib/pkgconfig ./configure --enable-shared --prefix=/opt/local --with-included-unistring
-ln -s /opt/local/include/libtasn1.h /usr/local/include/
+cp -f /opt/local/include/libtasn1.h /usr/local/include/
 make
 make install
 
@@ -61,10 +61,10 @@ LZ4_GIT='https://github.com/lz4/lz4'
 LZ4_VERSION=`curl -s "${LZ4_GIT}/releases/latest" | sed -n 's/^.*tag\/\(.*\)".*/\1/p'` 
 curl -SL "${LZ4_GIT}/archive/$LZ4_VERSION.tar.gz" -o lz4.tar.gz
 tar -xf lz4.tar.gz -C lz4 --strip-components=1 
-cd lz4 
+cd /opt/src/lz4 
 make -j"$(nproc)" && make install
 cd ..
-ln -sf /usr/local/lib/liblz4.* /usr/lib/
+cp -f /usr/local/lib/liblz4.* /usr/lib/
 
 cd /opt/src
 OPENSSL='openssl-1.1.0g'
@@ -77,11 +77,13 @@ make
 make install
 
 cd /opt/src
-PROTOBUF_VERSION=3.4.1
+PROTOBUF_GIT='https://github.com/google/protobuf'
+PROTOBUF_VERSION=`curl -s "${PROTOBUF_GIT}/releases/latest" | sed -n 's/^.*tag\/v\(.*\)".*/\1/p'`
 PROTOBUF="protobuf-${PROTOBUF_VERSION}"
-curl -SL "https://github.com/google/protobuf/archive/v${PROTOBUF_VERSION}.tar.gz" -o ${PROTOBUF}.tar.gz
+curl -SL "$PROTOBUF_GIT/archive/v${PROTOBUF_VERSION}.tar.gz" -o ${PROTOBUF}.tar.gz
 tar xzfv "${PROTOBUF}".tar.gz
-cd "${PROTOBUF}"
+PROTOBUF_GIT='https://github.com/google/protobuf'
+cd /opt/src/"${PROTOBUF}"
 ./autogen.sh
 ./configure --prefix=/opt/local
 make
@@ -106,7 +108,7 @@ tar -xf ../protobuf-c.tar.gz --strip-components=1
 #	libev-dev
 #
 cd /opt/src
-OCSERV=ocserv-0.11.9
+OCSERV=ocserv-0.11.11
 wget ftp://ftp.infradead.org/pub/ocserv/${OCSERV}.tar.xz
 tar xvf ${OCSERV}.tar.xz
 cd /opt/src/${OCSERV}
